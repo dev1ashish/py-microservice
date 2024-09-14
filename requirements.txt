@@ -14,3 +14,4 @@ statsmodels
 pmdarima
 beautifulsoup4
 lxml
+psutil

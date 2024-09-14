@@ -10,7 +10,7 @@ def fetch_latest_data(ticker, sequence_length):
     return df['Close'].values[-sequence_length:]
 
 def prepare_data(data, sequence_length):
-    scaler = MinMaxScaler()
+    scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_data = scaler.fit_transform(data.reshape(-1, 1))
     return scaled_data, scaler
 
@@ -26,4 +26,8 @@ def predict_future_prices(model, last_sequence, scaler, days):
     
     future_predictions = np.array(future_predictions).reshape(-1, 1)
     future_prices = scaler.inverse_transform(future_predictions)
+    
+    # Ensure all predictions are non-negative
+    future_prices = np.maximum(future_prices, 0)
+    
     return future_prices

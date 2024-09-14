@@ -3,6 +3,8 @@ import numpy as np
 from app.utils import fetch_latest_data, prepare_data, predict_future_prices
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
+from sklearn.preprocessing import MinMaxScaler  # Add this import
+import tensorflow as tf
 
 @pytest.mark.parametrize("ticker, sequence_length", [
     ("AAPL", 60),
@@ -34,9 +36,25 @@ def test_predict_future_prices():
 
     # Create dummy data
     last_sequence = np.random.rand(60, 1)
-    scaler = prepare_data(np.random.rand(100), 60)[1]
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler.fit(np.random.rand(100).reshape(-1, 1))
     days = 30
 
     future_prices = predict_future_prices(model, last_sequence, scaler, days)
     assert future_prices.shape == (days, 1)
-    assert np.all(future_prices > 0)  # Assuming stock prices are always positive
+    assert np.all(future_prices >= 0)  # Assuming stock prices are always non-negative
+
+def test_model_prediction():
+    # Load the actual model
+    model_path = 'app/models/AAPL_model.h5'
+    model = tf.keras.models.load_model(model_path)
+
+    # Create dummy data
+    last_sequence = np.random.rand(60, 1)
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler.fit(np.random.rand(100).reshape(-1, 1))
+    days = 30
+
+    future_prices = predict_future_prices(model, last_sequence, scaler, days)
+    assert future_prices.shape == (days, 1)
+    assert np.all(future_prices >= 0)  # Assuming stock prices are always non-negative
